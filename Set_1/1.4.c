@@ -1,16 +1,13 @@
-// Single-byte XOR cipher
-// The hex encoded string:
+// Detect single-character XOR
+// One of the 60-character strings in this file has been encrypted by single-character XOR.
 
-// 1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736
-// ... has been XOR'd against a single character. Find the key, decrypt the message.
+// Find it.
 
-// You can do this by hand. But don't: write code to do it for you.
-
-// How? Devise some method for "scoring" a piece of English plaintext. Character frequency is a good metric. Evaluate each output and choose the one with the best score.
+// (Your code from #3 should help.)
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 
 // Function to convert hex character to its integer value
@@ -33,12 +30,15 @@ int hex_to_bytes(const char *hex, unsigned char *bytes) {
 // Score plaintext based on character frequency
 int score_plaintext(const char *plaintext, int len) {
     int score = 0;
-    const char *frequency_chars = "ETAOIN SHRDLU";
+    const char *frequency_chars = "ETAOINSHRDLU";
+    
     for (int i = 0; i < len; i++) {
         if (strchr(frequency_chars, toupper(plaintext[i]))) score++;
+        else if (isspace(plaintext[i])) score += 5;
         else if (isalpha(plaintext[i])) score += 0;
         else score -= 10;
     }
+
     return score;
 }
 
@@ -66,17 +66,36 @@ void single_byte_xor_decrypt(const unsigned char *ciphertext, int cipher_len, in
 
 }
 
-int main() {
-    const char *hex_ciphertext = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
-    unsigned char ciphertext[256];
+int main()
+{
+    // Score string
+    double best_score = -1000;
+    char best_plaintext[256];
 
-    int score = -1000;
-    char plaintext[256];
-    
-    int cipher_len = hex_to_bytes(hex_ciphertext, ciphertext);
-    single_byte_xor_decrypt(ciphertext, cipher_len, &score, plaintext);
+    FILE *file = fopen("1.4.txt", "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return 1;
+    }
 
-    printf("%s - Score: %d\n", plaintext, score);
+    char buffer[256];
     
-    return 0;
+    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+        // Score string
+        unsigned char ciphertext[256];
+
+        int score = -1000;
+        char plaintext[256];
+        int cipher_len = hex_to_bytes(buffer, ciphertext);
+        single_byte_xor_decrypt(ciphertext, cipher_len, &score, plaintext);
+        if (score > best_score) {
+            best_score = score;
+            strncpy(best_plaintext, plaintext, cipher_len);
+        }
+    }
+    // Close the file
+    fclose(file);
+
+    printf("%s", best_plaintext);
+
 }
