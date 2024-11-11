@@ -50,6 +50,7 @@ void aes_128_ecb_decrypt(const unsigned char *ciphertext, int ciphertext_len, un
         AES_ecb_encrypt(ciphertext + (i * 16), plaintext + (i * 16), &decrypt_key, AES_DECRYPT);
     }
 }
+
 // Function to read the entire file into a buffer
 char *read_file(const char *filename, size_t *buffer_size) {
     FILE *file = fopen(filename, "r");
